@@ -6,7 +6,7 @@ export default function MobileNav() {
   return (
     <Sheet>
         <SheetTrigger>
-            <Menu className='text-orange-500'></Menu>
+            <Menu className='text-black'></Menu>
         </SheetTrigger>
         <SheetContent className='space-y-3'>
             <SheetTitle>
@@ -14,7 +14,7 @@ export default function MobileNav() {
             </SheetTitle>
             <Separator/>
             <SheetDescription className="flex">
-                <Button className='flex-1 font-bold bg-orange-500'>Log In</Button>
+                <Button className='flex-1 font-bold bg-black'>Login</Button>
             </SheetDescription>
         </SheetContent>
     </Sheet>
