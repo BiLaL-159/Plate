@@ -23,8 +23,35 @@ interface Category {
   items: MenuItem[];
 }
 
+interface Restaurant {
+  id: string;
+  name: string;
+  description: string;
+  cuisine: string;
+  address: string;
+  image: string;
+  deliveryTime: string;
+  priceRange: string;
+  categories: Category[];
+}
+
+interface PublicRestaurant {
+  id: string;
+  name: string;
+  image: string;
+  cuisine: string;
+  tags: string[];
+  rating: number;
+  deliveryTime: string;
+  distance: string;
+  priceRange: string;
+  description: string;
+  ownerEmail?: string;
+  menu: Record<string, MenuItem[]>;
+}
+
 // Initial restaurant data
-const initialRestaurantData = {
+const initialRestaurantData: Restaurant = {
   id: 'new-restaurant',
   name: '',
   description: '',
@@ -162,7 +189,7 @@ const RestaurantDetails = () => {
       priceRange: restaurantToSave.priceRange,
       description: restaurantToSave.description,
       ownerEmail: user?.email,
-      menu: restaurantToSave.categories.reduce((menu: Record<string, any>, category) => {
+      menu: restaurantToSave.categories.reduce<Record<string, MenuItem[]>>((menu, category) => {
         menu[category.name.toLowerCase()] = category.items;
         return menu;
       }, {})
@@ -170,8 +197,8 @@ const RestaurantDetails = () => {
     
     // Add to restaurants list in localStorage
     try {
-      const existingRestaurants = JSON.parse(localStorage.getItem('restaurants') || '[]');
-      const restIndex = existingRestaurants.findIndex((r: any) => r.id === publicRestaurant.id);
+      const existingRestaurants = JSON.parse(localStorage.getItem('restaurants') || '[]') as PublicRestaurant[];
+      const restIndex = existingRestaurants.findIndex((r) => r.id === publicRestaurant.id);
       
       if (restIndex >= 0) {
         existingRestaurants[restIndex] = publicRestaurant;
