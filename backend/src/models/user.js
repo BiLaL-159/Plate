@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  role: { type: String, enum: ['customer', 'restaurant_owner'], required: true },
-  password: { type: String, required: true }
-});
+const UserSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    role: { type: String, enum: ['customer', 'restaurant_owner'], required: true },
+    password: { type: String, required: true, select: false },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 
 UserSchema.pre('save', async function (next) {
@@ -25,6 +30,15 @@ UserSchema.pre('save', async function (next) {
 
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+UserSchema.methods.toAuthJSON = function () {
+  return {
+    id: this._id.toString(),
+    email: this.email,
+    name: this.name,
+    role: this.role,
+  };
 };
 
 module.exports = mongoose.model('User', UserSchema);
