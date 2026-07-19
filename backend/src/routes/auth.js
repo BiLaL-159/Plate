@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const config = require('../config/env');
 
 
 router.post('/signup', async (req, res) => {
@@ -22,7 +21,7 @@ router.post('/signup', async (req, res) => {
 
     
     const payload = { id: user._id, email: user.email, name: user.name, role: user.role };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
 
     return res.status(201).json({ user: payload, token });
   } catch (error) {
@@ -50,7 +49,7 @@ router.post('/login', async (req, res) => {
 
     // Create payload and sign token
     const payload = { id: user._id, email: user.email, name: user.name, role: user.role };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
 
     return res.status(200).json({ user: payload, token });
   } catch (error) {

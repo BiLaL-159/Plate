@@ -1,31 +1,41 @@
-const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
-require('dotenv').config();
+const config = require('./config/env');
+const createApp = require('./app');
+const connectDatabase = require('./db/connect');
 
-const authRoutes = require('./routes/auth');
+let server;
 
-const app = express();
-const PORT = process.env.PORT || 5001;
-
-
-app.use(cors());
-app.use(express.json());
-
-
-app.use('/api/auth', authRoutes);
-
-
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
+async function start() {
+  try {
+    await connectDatabase();
     console.log('MongoDB connected');
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+
+    const app = createApp();
+    server = app.listen(config.port, () => {
+      console.log(`Server is running on port ${config.port}`);
     });
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-  });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
+async function shutdown(signal) {
+  console.log(`${signal} received. Closing server.`);
 
+  if (server) {
+    server.close(async () => {
+      await mongoose.disconnect();
+      process.exit(0);
+    });
+    return;
+  }
+
+  await mongoose.disconnect();
+  process.exit(0);
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+start();
