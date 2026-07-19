@@ -1,61 +1,50 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-const jwt = require('jsonwebtoken');
-const config = require('../config/env');
+const ApiError = require('../utils/apiError');
+const asyncHandler = require('../middleware/asyncHandler');
+const createAuthToken = require('../utils/authToken');
+const validateRequest = require('../middleware/validateRequest');
+const { loginSchema, signupSchema } = require('../validators/authValidators');
 
 
-router.post('/signup', async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+router.post('/signup', validateRequest(signupSchema), asyncHandler(async (req, res) => {
+  const { name, email, password, role } = req.body;
+  const normalizedEmail = email.trim().toLowerCase();
 
-    
-    let user = await User.findOne({ email: email.toLowerCase() });
-    if (user) {
-      return res.status(400).json({ message: 'Email is already registered' });
-    }
-
-    
-    user = new User({ name, email: email.toLowerCase(), password, role });
-    await user.save();
-
-    
-    const payload = { id: user._id, email: user.email, name: user.name, role: user.role };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
-
-    return res.status(201).json({ user: payload, token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+  let user = await User.findOne({ email: normalizedEmail });
+  if (user) {
+    throw new ApiError(409, 'Email is already registered');
   }
-});
+
+  user = new User({ name: name.trim(), email: normalizedEmail, password, role });
+  await user.save();
+
+  const payload = user.toAuthJSON();
+  const token = createAuthToken(payload);
+
+  return res.status(201).json({ user: payload, token });
+}));
 
 
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+router.post('/login', validateRequest(loginSchema), asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const normalizedEmail = email.trim().toLowerCase();
 
-    
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    // Check if password matches
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    // Create payload and sign token
-    const payload = { id: user._id, email: user.email, name: user.name, role: user.role };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
-
-    return res.status(200).json({ user: payload, token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+  const user = await User.findOne({ email: normalizedEmail }).select('+password');
+  if (!user) {
+    throw new ApiError(401, 'Invalid email or password');
   }
-});
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    throw new ApiError(401, 'Invalid email or password');
+  }
+
+  const payload = user.toAuthJSON();
+  const token = createAuthToken(payload);
+
+  return res.status(200).json({ user: payload, token });
+}));
 
 module.exports = router;
