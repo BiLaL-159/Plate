@@ -22,7 +22,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authDialogView, setAuthDialogView] = useState<'login' | 'signup'>('login');
-  const { isAuthenticated, isRestaurantOwner } = useAuth();
+  const { isAuthenticated, isRestaurantOwner, logout } = useAuth();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
@@ -280,7 +280,6 @@ const Navbar = () => {
                 <button 
                   className="text-base font-medium py-2 text-red-500 hover:text-red-600 transition-colors text-left"
                   onClick={() => {
-                    const { logout } = useAuth();
                     logout();
                     setMobileMenuOpen(false);
                   }}
