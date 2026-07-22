@@ -5,15 +5,27 @@ function notFound(req, _res, next) {
 }
 
 function errorHandler(error, _req, res, _next) {
-  const statusCode = error.statusCode || 500;
+  let statusCode = error.statusCode || 500;
+  let message = error.message;
+
+  if (error.code === 11000) {
+    statusCode = 409;
+    message = 'Email is already registered';
+  }
 
   if (statusCode >= 500) {
     console.error(error);
   }
 
-  res.status(statusCode).json({
-    message: statusCode >= 500 ? 'Internal server error' : error.message,
-  });
+  const response = {
+    message: statusCode >= 500 ? 'Internal server error' : message,
+  };
+
+  if (error.details) {
+    response.details = error.details;
+  }
+
+  res.status(statusCode).json(response);
 }
 
 module.exports = {
