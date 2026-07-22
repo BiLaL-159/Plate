@@ -37,6 +37,8 @@ const AuthContext = createContext<AuthContextType>({
 // Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login function calling the backend endpoint
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -91,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Signup function calling the backend endpoint
   const signup = async (name: string, email: string, password: string, role: UserRole): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/signup', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

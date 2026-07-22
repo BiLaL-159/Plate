@@ -110,11 +110,7 @@ OrderSchema.pre('validate', function (next) {
   }
 
   this.pricing.subtotalCents = subtotal;
-  this.pricing.totalCents =
-    subtotal +
-    (this.pricing.deliveryFeeCents || 0) +
-    (this.pricing.serviceFeeCents || 0) +
-    (this.pricing.taxCents || 0);
+  this.pricing.totalCents = subtotal + (this.pricing.deliveryFeeCents || 0) + (this.pricing.serviceFeeCents || 0) + (this.pricing.taxCents || 0);
 
   next();
 });
